@@ -19,6 +19,7 @@ using std::chrono::duration;
 using std::chrono::high_resolution_clock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
+using std::ios_base;
 
 typedef vector<vector<double>> matrix;
 
@@ -40,22 +41,27 @@ Input getInput() {
     cin >> input.numberOfVertices;
     cin >> input.numberOfEdges;
 
-    input.edges.resize(static_cast<unsigned long>(input.numberOfEdges));
+//#pragma omp parallel
+    {
+//#pragma omp single nowait
+        input.edges.resize(static_cast<unsigned long>(input.numberOfEdges));
 
-    for (int i = 0; i < input.numberOfEdges; i++) {
-        int startingVertex;
-        int destinationVertex;
-        double weight;
+//#pragma omp single
+        for (int i = 0; i < input.numberOfEdges; i++) {
+            int startingVertex;
+            int destinationVertex;
+            double weight;
 
-        cin >> startingVertex;
-        cin >> destinationVertex;
-        cin >> weight;
+            cin >> startingVertex;
+            cin >> destinationVertex;
+            cin >> weight;
 
-        input.edges[i] = {
-                startingVertex,
-                destinationVertex,
-                weight
-        };
+            input.edges[i] = {
+                    startingVertex,
+                    destinationVertex,
+                    weight
+            };
+        }
     }
 
     return input;
@@ -65,7 +71,8 @@ matrix initializeMatrix(Input &input) {
     matrix matrix(static_cast<unsigned long>(input.numberOfVertices),
                   vector<double>(static_cast<unsigned long>(input.numberOfVertices), 0));
 
-//#pragma omp parallel for collapse(2)
+    // this seemed to make the program slower
+//#pragma omp parallel for collapse(2) if (input.numberOfVertices > 500)
     for (int i = 0; i < input.numberOfVertices; i++) {
         for (int j = 0; j < input.numberOfVertices; j++) {
             if (i == j) {
@@ -76,6 +83,7 @@ matrix initializeMatrix(Input &input) {
         }
     }
 
+    // could parallelize, but would only help when there are a large number of edges
     for (auto &edge : input.edges) {
         matrix[edge.startingVertex][edge.destinationVertex] = edge.weight;
     }
@@ -107,17 +115,16 @@ void printResults(Input &input, matrix &matrix) {
             shortestEdge = input.edges[i];
         }
         printf("%lf\n", shortestPathWeight);
-//        cout << shortestPathWeight << endl;
     }
 
     printf("%i %i %lf\n", shortestEdge.startingVertex, shortestEdge.destinationVertex, shortestEdge.weight);
-//    cout << shortestEdge.startingVertex << " " << shortestEdge.destinationVertex << " " << shortestEdge.weight << endl;
 }
 
 void findAllPaths(matrix &matrix) {
     unsigned long size = matrix.size();
 
-#pragma omp parallel for collapse(3)
+    // use static scheduling since each iteration should have roughly the same amount of work
+//#pragma omp parallel for schedule(static) collapse(3)
     for (int k = 0; k < size; k++) {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
@@ -137,6 +144,14 @@ void run() {
     printResults(input, matrix);
 }
 
+// these didn't seem to
+// http://codeforces.com/blog/entry/5217
+void ioHacks() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(nullptr);
+}
+
 int main() {
+//    ioHacks();
     run();
 }
