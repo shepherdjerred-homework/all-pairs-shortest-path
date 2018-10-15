@@ -14,6 +14,11 @@ using std::min;
 using std::setw;
 using std::vector;
 using std::numeric_limits;
+using std::chrono::time_point;
+using std::chrono::duration;
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::milliseconds;
 
 typedef vector<vector<double>> matrix;
 
@@ -32,10 +37,7 @@ struct Input {
 Input getInput() {
     Input input = {};
 
-    cerr << "How many vertices?" << endl;
     cin >> input.numberOfVertices;
-
-    cerr << "How many edges?" << endl;
     cin >> input.numberOfEdges;
 
     input.edges.resize(static_cast<unsigned long>(input.numberOfEdges));
@@ -45,11 +47,8 @@ Input getInput() {
         int destinationVertex;
         double weight;
 
-        cerr << "Starting vertex for edge " << i + 1 << endl;
         cin >> startingVertex;
-        cerr << "Destination vertex for edge " << i + 1 << endl;
         cin >> destinationVertex;
-        cerr << "Weight for edge " << i + 1 << endl;
         cin >> weight;
 
         input.edges[i] = {
@@ -63,11 +62,11 @@ Input getInput() {
 }
 
 matrix initializeMatrix(Input &input) {
-    matrix matrix(static_cast<unsigned long>(input.numberOfVertices), vector<double>(static_cast<unsigned long>(input.numberOfVertices), 0));
+    matrix matrix(static_cast<unsigned long>(input.numberOfVertices),
+                  vector<double>(static_cast<unsigned long>(input.numberOfVertices), 0));
 
-#pragma omp parallel for
+//#pragma omp parallel for collapse(2)
     for (int i = 0; i < input.numberOfVertices; i++) {
-#pragma omp parallel for
         for (int j = 0; j < input.numberOfVertices; j++) {
             if (i == j) {
                 matrix[i][j] = 0;
@@ -107,20 +106,20 @@ void printResults(Input &input, matrix &matrix) {
         if (shortestEdge.weight == -1 || shortestPathWeight < shortestEdge.weight) {
             shortestEdge = input.edges[i];
         }
-        cout << shortestPathWeight << endl;
+        printf("%lf\n", shortestPathWeight);
+//        cout << shortestPathWeight << endl;
     }
 
-    cout << shortestEdge.startingVertex << " " << shortestEdge.destinationVertex << " " << shortestEdge.weight << endl;
+    printf("%i %i %lf\n", shortestEdge.startingVertex, shortestEdge.destinationVertex, shortestEdge.weight);
+//    cout << shortestEdge.startingVertex << " " << shortestEdge.destinationVertex << " " << shortestEdge.weight << endl;
 }
 
 void findAllPaths(matrix &matrix) {
     unsigned long size = matrix.size();
 
-#pragma omp parallel for
+#pragma omp parallel for collapse(3)
     for (int k = 0; k < size; k++) {
-#pragma omp parallel for
         for (int i = 0; i < size; i++) {
-#pragma omp parallel for
             for (int j = 0; j < size; j++) {
                 double newValue = matrix[i][k] + matrix[k][j];
                 if (newValue < matrix[i][j]) {
@@ -131,20 +130,13 @@ void findAllPaths(matrix &matrix) {
     }
 }
 
-int main() {
+void run() {
     Input input = getInput();
     matrix matrix = initializeMatrix(input);
-
-    cerr << endl << endl;
-    cerr << "Original matrix" << endl;
-    printMatrix(matrix);
-    cerr << endl << endl;
-
     findAllPaths(matrix);
-
-    cerr << "Shortest path matrix" << endl;
-    printMatrix(matrix);
-    cerr << endl << endl;
-
     printResults(input, matrix);
+}
+
+int main() {
+    run();
 }
