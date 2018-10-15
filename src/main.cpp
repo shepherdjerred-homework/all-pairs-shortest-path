@@ -4,6 +4,7 @@
 #include <iomanip>
 #include <limits>
 #include <vector>
+#include <omp.h>
 
 using std::cin;
 using std::cout;
@@ -64,7 +65,9 @@ Input getInput() {
 matrix initializeMatrix(Input input) {
     matrix matrix(static_cast<unsigned long>(input.numberOfVertices), vector<double>(static_cast<unsigned long>(input.numberOfVertices), 0));
 
+//#pragma omp parallel for
     for (int i = 0; i < input.numberOfVertices; i++) {
+//#pragma omp parallel for
         for (int j = 0; j < input.numberOfVertices; j++) {
             if (i == j) {
                 matrix[i][j] = 0;
@@ -84,9 +87,9 @@ matrix initializeMatrix(Input input) {
 void printMatrix(matrix matrix) {
     for (auto &row : matrix) {
         for (auto &value : row) {
-            cout << setw(4) << value;
+            cerr << setw(4) << value;
         }
-        cout << endl;
+        cerr << endl;
     }
 }
 
@@ -112,8 +115,12 @@ void printResults(Input input, matrix matrix) {
 
 void findAllPaths(matrix matrix) {
     unsigned long size = matrix.size();
+
+//#pragma omp parallel for
     for (int k = 0; k < size; k++) {
+//#pragma omp parallel for
         for (int i = 0; i < size; i++) {
+//#pragma omp parallel for
             for (int j = 0; j < size; j++) {
                 double newValue = matrix[i][k] + matrix[k][j];
                 if (newValue < matrix[i][j]) {
@@ -128,15 +135,16 @@ int main() {
     Input input = getInput();
     matrix matrix = initializeMatrix(input);
 
-    cout << "Original matrix" << endl;
+    cerr << endl << endl;
+    cerr << "Original matrix" << endl;
     printMatrix(matrix);
-    cout << endl << endl;
+    cerr << endl << endl;
 
     findAllPaths(matrix);
 
-    cout << "Shortest path matrix" << endl;
+    cerr << "Shortest path matrix" << endl;
     printMatrix(matrix);
-    cout << endl << endl;
+    cerr << endl << endl;
 
     printResults(input, matrix);
 }
