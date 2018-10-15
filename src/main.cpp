@@ -62,12 +62,12 @@ Input getInput() {
     return input;
 }
 
-matrix initializeMatrix(Input input) {
+matrix initializeMatrix(Input &input) {
     matrix matrix(static_cast<unsigned long>(input.numberOfVertices), vector<double>(static_cast<unsigned long>(input.numberOfVertices), 0));
 
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int i = 0; i < input.numberOfVertices; i++) {
-//#pragma omp parallel for
+#pragma omp parallel for
         for (int j = 0; j < input.numberOfVertices; j++) {
             if (i == j) {
                 matrix[i][j] = 0;
@@ -84,7 +84,7 @@ matrix initializeMatrix(Input input) {
     return matrix;
 }
 
-void printMatrix(matrix matrix) {
+void printMatrix(matrix &matrix) {
     for (auto &row : matrix) {
         for (auto &value : row) {
             cerr << setw(4) << value;
@@ -93,7 +93,7 @@ void printMatrix(matrix matrix) {
     }
 }
 
-void printResults(Input input, matrix matrix) {
+void printResults(Input &input, matrix &matrix) {
     Edge shortestEdge = {
             -1,
             -1,
@@ -113,14 +113,14 @@ void printResults(Input input, matrix matrix) {
     cout << shortestEdge.startingVertex << " " << shortestEdge.destinationVertex << " " << shortestEdge.weight << endl;
 }
 
-void findAllPaths(matrix matrix) {
+void findAllPaths(matrix &matrix) {
     unsigned long size = matrix.size();
 
-//#pragma omp parallel for
+#pragma omp parallel for
     for (int k = 0; k < size; k++) {
-//#pragma omp parallel for
+#pragma omp parallel for
         for (int i = 0; i < size; i++) {
-//#pragma omp parallel for
+#pragma omp parallel for
             for (int j = 0; j < size; j++) {
                 double newValue = matrix[i][k] + matrix[k][j];
                 if (newValue < matrix[i][j]) {
