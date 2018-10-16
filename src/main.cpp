@@ -30,27 +30,22 @@ Input getInput() {
     cin >> input.numberOfVertices;
     cin >> input.numberOfEdges;
 
-#pragma omp parallel
-    {
-#pragma omp single nowait
-        input.edges.resize(static_cast<unsigned long>(input.numberOfEdges));
+    input.edges.resize(static_cast<unsigned long>(input.numberOfEdges));
 
-#pragma omp single
-        for (int i = 0; i < input.numberOfEdges; i++) {
-            int startingVertex;
-            int destinationVertex;
-            double weight;
+    for (int i = 0; i < input.numberOfEdges; i++) {
+        int startingVertex;
+        int destinationVertex;
+        double weight;
 
-            cin >> startingVertex;
-            cin >> destinationVertex;
-            cin >> weight;
+        cin >> startingVertex;
+        cin >> destinationVertex;
+        cin >> weight;
 
-            input.edges[i] = {
-                    startingVertex,
-                    destinationVertex,
-                    weight
-            };
-        }
+        input.edges[i] = {
+                startingVertex,
+                destinationVertex,
+                weight
+        };
     }
 
     return input;
