@@ -1,7 +1,10 @@
-let numNodes = 500;
-let numEdges = 30;
+let numNodes = 5;
+let numEdges = 13;
+let numRoutes = 3;
 let minEdgeWeight = 0;
-let maxEdgeWeight = 100;
+let maxEdgeWeight = 50;
+let minRouteLength = 4;
+let maxRouteLength = numEdges;
 
 let edges = [];
 
@@ -28,6 +31,15 @@ for (let i = 0; i < numEdges; i++) {
   edges[i] = genRoute();
 }
 
+let routes = [];
+for (let i = 0; i < numRoutes; i++) {
+  let numNodesInRoute = genNum(minRouteLength, maxRouteLength);
+  routes[i] = [];
+  for (let j = 0; j < numNodesInRoute; j++) {
+    routes[i][j] = genNum(0, numNodes - 1);
+  }
+}
+
 let outputString = '';
 
 outputString += numNodes + ' ' ;
@@ -40,6 +52,18 @@ for (let i = 0; i < numEdges; i++) {
   outputString += edges[i].dest + ' ';
   outputString += edges[i].weight + ' ';
   outputString += '\n';
+}
+
+outputString += numRoutes;
+outputString += '\n';
+
+for (let i = 0; i < numRoutes; i++) {
+  let numNodesInRoute = routes[i].length;
+  outputString += numNodesInRoute + ' ';
+  for (let j = 0; j < numNodesInRoute; j++) {
+    outputString += routes[i][j] + ' ';
+  }
+  outputString += '\n'
 }
 
 outputString += '\n';

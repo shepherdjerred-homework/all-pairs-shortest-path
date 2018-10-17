@@ -12,6 +12,12 @@ using std::numeric_limits;
 
 typedef vector<vector<double>> matrix;
 
+struct Route {
+    int numberOfVertices;
+    double shortestPathLength;
+    vector<int> vertices;
+};
+
 struct Edge {
     int startingVertex;
     int destinationVertex;
@@ -21,7 +27,9 @@ struct Edge {
 struct Input {
     int numberOfVertices;
     int numberOfEdges;
+    int numberOfRoutes;
     vector<Edge> edges;
+    vector<Route> routes;
 };
 
 Input getInput() {
@@ -48,6 +56,24 @@ Input getInput() {
         };
     }
 
+    cin >> input.numberOfRoutes;
+
+    input.routes.resize(static_cast<unsigned long>(input.numberOfRoutes));
+
+    for (int i = 0; i < input.numberOfRoutes; i++) {
+        int length;
+        cin >> length;
+
+        input.routes[i].numberOfVertices = length;
+        input.routes[i].vertices.resize(static_cast<unsigned long>(length));
+
+        for (int j = 0; j < length; j++) {
+            int vertex;
+            cin >> vertex;
+            input.routes[i].vertices[j] = vertex;
+        }
+    }
+
     return input;
 }
 
@@ -72,30 +98,36 @@ matrix initializeMatrix(Input &input) {
     return matrix;
 }
 
-void printResults(Input &input, matrix &matrix) {
-    Edge shortestEdge = {
-            -1,
-            -1,
-            -1
-    };
+double calculateShortestRoutes(Input &input, matrix &matrix) {
+    double shortestRouteLength = -1;
 
-    for (int i = 0; i < input.numberOfEdges; i++) {
-        int startingVertex = input.edges[i].startingVertex;
-        int destinationVertex = input.edges[i].destinationVertex;
-        double shortestPathWeight = matrix[startingVertex][destinationVertex];
-        if (shortestEdge.weight == -1 || shortestPathWeight < shortestEdge.weight) {
-            shortestEdge = input.edges[i];
+#pragma mpi parallel for schedule(static)
+    for (int i = 0; i < input.numberOfRoutes; i++) {
+        double routeLength = 0;
+        for (int j = 0; j < input.routes[i].numberOfVertices - 1; j++) {
+            routeLength += matrix[input.routes[i].vertices[j]][input.routes[i].vertices[j + 1]];
         }
-        printf("%lf\n", shortestPathWeight);
+        input.routes[i].shortestPathLength = routeLength;
+        if (shortestRouteLength == - 1 || routeLength < shortestRouteLength) {
+            shortestRouteLength = routeLength;
+        }
     }
 
-    printf("%i %i %lf\n", shortestEdge.startingVertex, shortestEdge.destinationVertex, shortestEdge.weight);
+    return shortestRouteLength;
+}
+
+void printRoutes(Input &input, matrix &matrix, double shortestPathLength) {
+    for (int i = 0; i < input.numberOfRoutes; i++) {
+        printf("%lf\n", input.routes[i].shortestPathLength);
+    }
+
+    printf("%lf\n", shortestPathLength);
 }
 
 void findAllPaths(matrix &matrix) {
     unsigned long size = matrix.size();
 
-#pragma omp parallel for schedule(static) collapse(3)
+#pragma omp parallel for
     for (int k = 0; k < size; k++) {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
@@ -112,7 +144,8 @@ void run() {
     Input input = getInput();
     matrix matrix = initializeMatrix(input);
     findAllPaths(matrix);
-    printResults(input, matrix);
+    double shortestPath = calculateShortestRoutes(input, matrix);
+    printRoutes(input, matrix, shortestPath);
 }
 
 int main() {
