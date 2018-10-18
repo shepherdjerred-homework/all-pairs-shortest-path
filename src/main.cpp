@@ -101,14 +101,15 @@ matrix initializeMatrix(Input &input) {
 double calculateShortestRoutes(Input &input, matrix &matrix) {
     double shortestRouteLength = -1;
 
-#pragma mpi parallel for schedule(static)
     for (int i = 0; i < input.numberOfRoutes; i++) {
         double routeLength = 0;
+
         for (int j = 0; j < input.routes[i].numberOfVertices - 1; j++) {
             routeLength += matrix[input.routes[i].vertices[j]][input.routes[i].vertices[j + 1]];
         }
+
         input.routes[i].shortestPathLength = routeLength;
-        if (shortestRouteLength == - 1 || routeLength < shortestRouteLength) {
+        if (shortestRouteLength == -1 || routeLength < shortestRouteLength) {
             shortestRouteLength = routeLength;
         }
     }
@@ -127,10 +128,11 @@ void printRoutes(Input &input, matrix &matrix, double shortestPathLength) {
 void findAllPaths(matrix &matrix) {
     unsigned long size = matrix.size();
 
-#pragma omp parallel for
     for (int k = 0; k < size; k++) {
+#pragma omp parallel for
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
+//                printf("write: m[%i][%i]; read: m[%i][%i] m[%i][%i]\n", i, j, i, k, k, j);
                 double newValue = matrix[i][k] + matrix[k][j];
                 if (newValue < matrix[i][j]) {
                     matrix[i][j] = newValue;

@@ -10,7 +10,7 @@ let edges = [];
 
 let genNum = (min, max) => {
   return Math.floor(Math.random() * (max - min + 1) + min);
-}
+};
 
 let genRoute = () => {
   let source = -1;
@@ -25,7 +25,7 @@ let genRoute = () => {
     dest,
     weight
   }
-}
+};
 
 for (let i = 0; i < numEdges; i++) {
   edges[i] = genRoute();
