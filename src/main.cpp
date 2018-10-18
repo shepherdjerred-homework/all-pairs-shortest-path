@@ -128,8 +128,9 @@ void printRoutes(Input &input, matrix &matrix, double shortestPathLength) {
 void findAllPaths(matrix &matrix) {
     unsigned long size = matrix.size();
 
+#pragma omp parallel
     for (int k = 0; k < size; k++) {
-#pragma omp parallel for
+#pragma omp for
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
 //                printf("write: m[%i][%i]; read: m[%i][%i] m[%i][%i]\n", i, j, i, k, k, j);
